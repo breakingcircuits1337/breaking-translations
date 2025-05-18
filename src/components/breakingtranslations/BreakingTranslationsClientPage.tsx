@@ -75,8 +75,9 @@ export default function BreakingTranslationsClientPage() {
 
     setIsLoading(true);
     setError(null);
-    setTranscription('');
-    setTranslation('');
+    // Do not clear transcription/translation here, as they might be cleared manually
+    // setTranscription('');
+    // setTranslation('');
     setSynthesizedAudio(null);
 
     try {
@@ -135,8 +136,14 @@ export default function BreakingTranslationsClientPage() {
     const mediaRecorderRef = panelId === 'pt' ? mediaRecorderPtRef : mediaRecorderEnRef;
     const audioChunksRef = panelId === 'pt' ? audioChunksPtRef : audioChunksEnRef;
     const currentErrorSetter = panelId === 'pt' ? setErrorPt : setErrorEn;
+    const currentTranscriptionSetter = panelId === 'pt' ? setTranscriptionPt : setTranscriptionEn;
+    const currentTranslationSetter = panelId === 'pt' ? setTranslationPtToEn : setTranslationEnToPt;
+
 
     currentErrorSetter(null); // Clear previous errors
+    currentTranscriptionSetter(''); // Clear previous transcription
+    currentTranslationSetter(''); // Clear previous translation
+
 
     if (isRecording) {
       // Stop recording
@@ -193,6 +200,13 @@ export default function BreakingTranslationsClientPage() {
       }
     }
   };
+  
+  // Clear functions
+  const handleClearTranscriptionPt = () => setTranscriptionPt('');
+  const handleClearTranslationPtToEn = () => setTranslationPtToEn('');
+  const handleClearTranscriptionEn = () => setTranscriptionEn('');
+  const handleClearTranslationEnToPt = () => setTranslationEnToPt('');
+
 
   return (
     <div className="min-h-screen flex flex-col items-center p-4 md:p-8 bg-background font-sans">
@@ -267,6 +281,8 @@ export default function BreakingTranslationsClientPage() {
           voiceSelectorLabel="English Output Voice"
           transcriptionLabel="Você disse (Português):"
           translationLabel="Tradução (Inglês):"
+          onClearTranscription={handleClearTranscriptionPt}
+          onClearTranslation={handleClearTranslationPtToEn}
         />
         <SpeakerPanel
           title="Speak in English"
@@ -285,6 +301,8 @@ export default function BreakingTranslationsClientPage() {
           voiceSelectorLabel="Portuguese Output Voice"
           transcriptionLabel="You said (English):"
           translationLabel="Translation (Portuguese):"
+          onClearTranscription={handleClearTranscriptionEn}
+          onClearTranslation={handleClearTranslationEnToPt}
         />
       </main>
       <footer className="mt-12 text-center text-sm text-muted-foreground">

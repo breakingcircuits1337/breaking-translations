@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Mic, MicOff, Play, Volume2, AlertCircle } from 'lucide-react';
+import { Loader2, Mic, MicOff, Play, Volume2, AlertCircle, X } from 'lucide-react';
 import type { VoiceOption } from '@/lib/elevenlabs-voices';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -27,6 +27,8 @@ interface SpeakerPanelProps {
   voiceSelectorLabel: string;
   transcriptionLabel: string;
   translationLabel: string;
+  onClearTranscription: () => void;
+  onClearTranslation: () => void;
 }
 
 export const SpeakerPanel: FC<SpeakerPanelProps> = ({
@@ -46,6 +48,8 @@ export const SpeakerPanel: FC<SpeakerPanelProps> = ({
   voiceSelectorLabel,
   transcriptionLabel,
   translationLabel,
+  onClearTranscription,
+  onClearTranslation,
 }) => {
   const audioPlayerRef = useRef<HTMLAudioElement>(null);
 
@@ -117,9 +121,22 @@ export const SpeakerPanel: FC<SpeakerPanelProps> = ({
         )}
 
         <div>
-          <label htmlFor={`transcription-${panelId}`} className="block text-sm font-medium text-foreground mb-1">
-            {transcriptionLabel}
-          </label>
+          <div className="flex justify-between items-center mb-1">
+            <label htmlFor={`transcription-${panelId}`} className="block text-sm font-medium text-foreground">
+              {transcriptionLabel}
+            </label>
+            {transcription && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClearTranscription}
+                className="h-auto px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
+                aria-label={`Clear ${transcriptionLabel}`}
+              >
+                <X className="h-3 w-3 mr-1" /> Clear
+              </Button>
+            )}
+          </div>
           <ScrollArea className="h-32 w-full rounded-md border p-2 bg-muted/20">
             <Textarea
               id={`transcription-${panelId}`}
@@ -133,9 +150,22 @@ export const SpeakerPanel: FC<SpeakerPanelProps> = ({
         </div>
 
         <div>
-          <label htmlFor={`translation-${panelId}`} className="block text-sm font-medium text-foreground mb-1">
-            {translationLabel}
-          </label>
+          <div className="flex justify-between items-center mb-1">
+            <label htmlFor={`translation-${panelId}`} className="block text-sm font-medium text-foreground">
+              {translationLabel}
+            </label>
+            {translation && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClearTranslation}
+                className="h-auto px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
+                aria-label={`Clear ${translationLabel}`}
+              >
+                <X className="h-3 w-3 mr-1" /> Clear
+              </Button>
+            )}
+          </div>
           <ScrollArea className="h-32 w-full rounded-md border p-2 bg-muted/20">
             <Textarea
               id={`translation-${panelId}`}
