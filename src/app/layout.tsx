@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'LinguaLive - Real-time Speech Translation',
+  title: 'Breaking Translations - Real-time Speech Translation',
   description: 'Translate Brazilian Portuguese and English in real-time using speech.',
 };
 
