@@ -15,6 +15,7 @@ import {z} from 'genkit';
 const SynthesizeSpeechInputSchema = z.object({
   text: z.string().describe('The text to synthesize into speech.'),
   voiceId: z.string().describe('The ID of the voice to use for speech synthesis.'),
+  apiKey: z.string().optional().describe('The Eleven Labs API key. If not provided, the server will attempt to use an environment variable.'),
 });
 export type SynthesizeSpeechInput = z.infer<typeof SynthesizeSpeechInputSchema>;
 
@@ -34,9 +35,10 @@ const synthesizeSpeechFlow = ai.defineFlow(
     outputSchema: SynthesizeSpeechOutputSchema,
   },
   async input => {
-    const apiKey = process.env.ELEVEN_LABS_API_KEY;
-    if (!apiKey) {
-      throw new Error('Eleven Labs API key is not set in environment variables.');
+    const elevenLabsApiKey = input.apiKey || process.env.ELEVEN_LABS_API_KEY;
+
+    if (!elevenLabsApiKey) {
+      throw new Error('Eleven Labs API key is not set. Please provide it in the input or set the ELEVEN_LABS_API_KEY environment variable.');
     }
 
     const voiceId = input.voiceId;
@@ -46,7 +48,7 @@ const synthesizeSpeechFlow = ai.defineFlow(
 
     const headers = {
       'Content-Type': 'application/json',
-      'xi-api-key': apiKey,
+      'xi-api-key': elevenLabsApiKey,
     };
 
     const body = JSON.stringify({

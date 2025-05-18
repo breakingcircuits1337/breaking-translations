@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Languages, Settings } from 'lucide-react';
+import { Loader2, Languages, Settings, KeyRound } from 'lucide-react';
 
 import { transcribeAudio, type TranscribeAudioInput } from '@/ai/flows/transcribe-audio';
 import { translateText, type TranslateTextInput } from '@/ai/flows/translate-text';
@@ -15,6 +15,9 @@ import { synthesizeSpeech, type SynthesizeSpeechInput } from '@/ai/flows/synthes
 
 import { ENGLISH_VOICES, PORTUGUESE_VOICES, DEFAULT_ENGLISH_VOICE_ID, DEFAULT_PORTUGUESE_VOICE_ID } from '@/lib/elevenlabs-voices';
 import { blobToDataURL } from '@/lib/audio-utils';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
 
 type PanelId = 'pt' | 'en';
 
@@ -45,6 +48,7 @@ export default function BreakingTranslationsClientPage() {
 
   // Shared state
   const [includeSlang, setIncludeSlang] = useState(false);
+  const [elevenLabsApiKey, setElevenLabsApiKey] = useState('');
   
   const processAudio = useCallback(async (audioBlob: Blob, inputLang: PanelId) => {
     const setIsLoading = inputLang === 'pt' ? setIsLoadingPt : setIsLoadingEn;
@@ -56,6 +60,18 @@ export default function BreakingTranslationsClientPage() {
     const sourceLanguageCode = inputLang === 'pt' ? 'pt-BR' : 'en-US';
     const targetLanguageCode = inputLang === 'pt' ? 'en' : 'pt';
     const outputVoiceId = inputLang === 'pt' ? selectedEnglishVoice : selectedPortugueseVoice;
+
+    if (!elevenLabsApiKey && !process.env.NEXT_PUBLIC_ELEVEN_LABS_API_KEY) { 
+        const msg = "Eleven Labs API Key is not set. Please enter it in the API Key Configuration section.";
+        setError(msg);
+        toast({
+            title: "API Key Missing",
+            description: msg,
+            variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -93,6 +109,7 @@ export default function BreakingTranslationsClientPage() {
       const synthesizeInput: SynthesizeSpeechInput = {
         text: translationResult.translation,
         voiceId: outputVoiceId,
+        apiKey: elevenLabsApiKey, 
       };
       const synthesisResult = await synthesizeSpeech(synthesizeInput);
       setSynthesizedAudio(synthesisResult.audioDataUri);
@@ -109,7 +126,7 @@ export default function BreakingTranslationsClientPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [includeSlang, selectedEnglishVoice, selectedPortugueseVoice, toast]);
+  }, [includeSlang, selectedEnglishVoice, selectedPortugueseVoice, toast, elevenLabsApiKey]);
 
 
   const handleRecordToggle = async (panelId: PanelId) => {
@@ -187,23 +204,50 @@ export default function BreakingTranslationsClientPage() {
         <p className="text-muted-foreground mt-2">Real-time speech translation between Brazilian Portuguese and English.</p>
       </header>
 
-      <div className="w-full max-w-5xl mb-6 p-4 bg-card rounded-lg shadow">
-        <div className="flex items-center space-x-2">
-          <Settings className="h-5 w-5 text-primary" />
-          <Label htmlFor="include-slang" className="font-medium">
-            Translation Options
+      <Card className="w-full max-w-5xl mb-6 shadow">
+        <CardHeader>
+          <CardTitle className="flex items-center text-lg">
+            <KeyRound className="h-5 w-5 mr-2 text-primary" />
+            API Key Configuration
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Label htmlFor="elevenlabs-api-key" className="mb-1 block text-sm font-medium">
+            Eleven Labs API Key
           </Label>
-        </div>
-        <div className="flex items-center space-x-2 mt-2 pl-7">
-          <Switch
-            id="include-slang"
-            checked={includeSlang}
-            onCheckedChange={setIncludeSlang}
-            aria-label="Toggle inclusion of slang and idioms in translation"
+          <Input
+            id="elevenlabs-api-key"
+            type="password"
+            placeholder="Enter your Eleven Labs API Key"
+            value={elevenLabsApiKey}
+            onChange={(e) => setElevenLabsApiKey(e.target.value)}
+            className="w-full"
           />
-          <Label htmlFor="include-slang">Include Slang/Idioms</Label>
-        </div>
-      </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Used for text-to-speech. Stored in component state, not persisted. For production, use environment variables.
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card className="w-full max-w-5xl mb-6 shadow">
+        <CardHeader>
+           <CardTitle className="flex items-center text-lg">
+            <Settings className="h-5 w-5 mr-2 text-primary" />
+            Translation Options
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="include-slang"
+              checked={includeSlang}
+              onCheckedChange={setIncludeSlang}
+              aria-label="Toggle inclusion of slang and idioms in translation"
+            />
+            <Label htmlFor="include-slang">Include Slang/Idioms</Label>
+          </div>
+        </CardContent>
+      </Card>
 
       <main className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-6">
         <SpeakerPanel
