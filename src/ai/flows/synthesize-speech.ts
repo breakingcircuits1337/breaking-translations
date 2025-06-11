@@ -35,7 +35,7 @@ const synthesizeSpeechFlow = ai.defineFlow(
     outputSchema: SynthesizeSpeechOutputSchema,
   },
   async input => {
-    const elevenLabsApiKey = input.apiKey || process.env.ELEVEN_LABS_API_KEY;
+    const elevenLabsApiKey = process.env.ELEVEN_LABS_API_KEY || input.apiKey;
 
     if (!elevenLabsApiKey) {
       throw new Error('Eleven Labs API key is not set. Please provide it in the input or set the ELEVEN_LABS_API_KEY environment variable.');
