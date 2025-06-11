@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Languages, Settings, KeyRound } from 'lucide-react';
+import { Loader2, Languages, Settings } from 'lucide-react';
 
 import { transcribeAudio, type TranscribeAudioInput } from '@/ai/flows/transcribe-audio';
 import { translateText, type TranslateTextInput } from '@/ai/flows/translate-text';
@@ -15,7 +15,6 @@ import { synthesizeSpeech, type SynthesizeSpeechInput } from '@/ai/flows/synthes
 
 import { ENGLISH_VOICES, PORTUGUESE_VOICES, DEFAULT_ENGLISH_VOICE_ID, DEFAULT_PORTUGUESE_VOICE_ID } from '@/lib/elevenlabs-voices';
 import { blobToDataURL } from '@/lib/audio-utils';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 
@@ -48,7 +47,6 @@ export default function BreakingTranslationsClientPage() {
 
   // Shared state
   const [includeSlang, setIncludeSlang] = useState(false);
-  const [elevenLabsApiKey, setElevenLabsApiKey] = useState(process.env.NEXT_PUBLIC_ELEVEN_LABS_API_KEY || '');
   
   const processAudio = useCallback(async (audioBlob: Blob, inputLang: PanelId) => {
     const setIsLoading = inputLang === 'pt' ? setIsLoadingPt : setIsLoadingEn;
@@ -61,23 +59,8 @@ export default function BreakingTranslationsClientPage() {
     const targetLanguageCode = inputLang === 'pt' ? 'en' : 'pt';
     const outputVoiceId = inputLang === 'pt' ? selectedEnglishVoice : selectedPortugueseVoice;
 
-    if (!elevenLabsApiKey) { 
-        const msg = "Eleven Labs API Key is not set. Please enter it in the API Key Configuration section or set it as a NEXT_PUBLIC_ELEVEN_LABS_API_KEY environment variable.";
-        setError(msg);
-        toast({
-            title: "API Key Missing",
-            description: msg,
-            variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-    }
-
     setIsLoading(true);
     setError(null);
-    // Do not clear transcription/translation here, as they might be cleared manually
-    // setTranscription('');
-    // setTranslation('');
     setSynthesizedAudio(null);
 
     try {
@@ -110,7 +93,6 @@ export default function BreakingTranslationsClientPage() {
       const synthesizeInput: SynthesizeSpeechInput = {
         text: translationResult.translation,
         voiceId: outputVoiceId,
-        apiKey: elevenLabsApiKey, 
       };
       const synthesisResult = await synthesizeSpeech(synthesizeInput);
       setSynthesizedAudio(synthesisResult.audioDataUri);
@@ -127,7 +109,7 @@ export default function BreakingTranslationsClientPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [includeSlang, selectedEnglishVoice, selectedPortugueseVoice, toast, elevenLabsApiKey]);
+  }, [includeSlang, selectedEnglishVoice, selectedPortugueseVoice, toast]);
 
 
   const handleRecordToggle = async (panelId: PanelId) => {
@@ -217,31 +199,6 @@ export default function BreakingTranslationsClientPage() {
         </div>
         <p className="text-muted-foreground mt-2">Real-time speech translation between Brazilian Portuguese and English.</p>
       </header>
-
-      <Card className="w-full max-w-5xl mb-6 shadow">
-        <CardHeader>
-          <CardTitle className="flex items-center text-lg">
-            <KeyRound className="h-5 w-5 mr-2 text-primary" />
-            API Key Configuration
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Label htmlFor="elevenlabs-api-key" className="mb-1 block text-sm font-medium">
-            Eleven Labs API Key
-          </Label>
-          <Input
-            id="elevenlabs-api-key"
-            type="password"
-            placeholder="Enter your Eleven Labs API Key"
-            value={elevenLabsApiKey}
-            onChange={(e) => setElevenLabsApiKey(e.target.value)}
-            className="w-full"
-          />
-          <p className="text-xs text-muted-foreground mt-1">
-            Used for text-to-speech. Stored in component state, not persisted. For production, use environment variables.
-          </p>
-        </CardContent>
-      </Card>
 
       <Card className="w-full max-w-5xl mb-6 shadow">
         <CardHeader>
