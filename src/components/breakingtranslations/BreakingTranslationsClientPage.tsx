@@ -48,7 +48,7 @@ export default function BreakingTranslationsClientPage() {
 
   // Shared state
   const [includeSlang, setIncludeSlang] = useState(false);
-  const [elevenLabsApiKey, setElevenLabsApiKey] = useState('');
+  const [elevenLabsApiKey, setElevenLabsApiKey] = useState(process.env.NEXT_PUBLIC_ELEVEN_LABS_API_KEY || '');
   
   const processAudio = useCallback(async (audioBlob: Blob, inputLang: PanelId) => {
     const setIsLoading = inputLang === 'pt' ? setIsLoadingPt : setIsLoadingEn;
@@ -61,8 +61,8 @@ export default function BreakingTranslationsClientPage() {
     const targetLanguageCode = inputLang === 'pt' ? 'en' : 'pt';
     const outputVoiceId = inputLang === 'pt' ? selectedEnglishVoice : selectedPortugueseVoice;
 
-    if (!elevenLabsApiKey && !process.env.NEXT_PUBLIC_ELEVEN_LABS_API_KEY) { 
-        const msg = "Eleven Labs API Key is not set. Please enter it in the API Key Configuration section.";
+    if (!elevenLabsApiKey) { 
+        const msg = "Eleven Labs API Key is not set. Please enter it in the API Key Configuration section or set it as a NEXT_PUBLIC_ELEVEN_LABS_API_KEY environment variable.";
         setError(msg);
         toast({
             title: "API Key Missing",
